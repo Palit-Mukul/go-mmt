@@ -20,7 +20,8 @@ type ConfigJSON struct {
 	Count      string `json:"count"`
 }
 
-func NewService (v ConfigJSON)  {
+func NewService (mainWG *sync.WaitGroup, v ConfigJSON)  {
+	defer mainWG.Done()
 	var wg sync.WaitGroup
 	var err error
 	count := 0

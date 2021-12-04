@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Palit-Mukul/go-mmt/service"
 	"log"
+	"sync"
 )
 
 var testConfig = `{
@@ -33,13 +34,15 @@ var testConfig = `{
 }`
 
 func main() {
-		parsedConfig := ParseJSON()
-
-		for _,v :=range parsedConfig.Config {
-			service.NewService(v)
-		}
-		fmt.Println("main thread unblocked")
-		fmt.Println("Total Time : ",service.TotalTime)
+	var mainWG sync.WaitGroup
+	parsedConfig := ParseJSON()
+	for _,v :=range parsedConfig.Config {
+		mainWG.Add(1)
+		go service.NewService(&mainWG, v)
+	}
+	fmt.Println("main thread unblocked")
+	mainWG.Wait()
+	fmt.Println("Total Time : ",service.TotalTime)
 }
 
 func ParseJSON () service.ProgramConfig {
