@@ -1,7 +1,8 @@
 package service
 
 import (
-"log"
+	"fmt"
+	"log"
 "net/http"
 "strconv"
 "sync"
@@ -20,8 +21,7 @@ type ConfigJSON struct {
 	Count      string `json:"count"`
 }
 
-func NewService (mainWG *sync.WaitGroup, v ConfigJSON)  {
-	defer mainWG.Done()
+func NewService (timeI chan int, v ConfigJSON)  {
 	var wg sync.WaitGroup
 	var err error
 	count := 0
@@ -38,13 +38,16 @@ func NewService (mainWG *sync.WaitGroup, v ConfigJSON)  {
 		}
 		wg.Wait()
 		t := int(time.Since(startTime).Seconds())
-		TotalTime += t
+		fmt.Println(t)
+		timeI <- t
 	case false:
 		startTime := time.Now()
 		for i:=0;i<count;i++ {
 			HitURL(v.URL)
 		}
 		t := int(time.Since(startTime).Seconds())
+		fmt.Println(t)
+		timeI <- t
 		TotalTime += t
 	}
 }
@@ -59,9 +62,9 @@ func HitURL (url string) {
 
 func HitURLinParallel (wg *sync.WaitGroup, url string) {
 	defer wg.Done()
-	log.Println("Hitting URL : ",url)
+	log.Println("Hitting URL : ", url)
 	_, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("could not hit url [%s] : %s",url,err)
+		log.Fatalf("could not hit url [%s] : %s", url, err)
 	}
 }
